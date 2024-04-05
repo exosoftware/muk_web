@@ -1,33 +1,21 @@
-###################################################################################
-#
-#    Copyright (c) 2017-today MuK IT GmbH.
-#
-#    This file is part of MuK Theme
-#    (see https://mukit.at).
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with this program. If not, see <http://www.gnu.org/licenses/>.
-#
-###################################################################################
-
 from . import models
 
-from odoo import api, SUPERUSER_ID
+import base64
+
+from odoo.tools import file_open
 
 
-def _uninstall_reset_changes(cr, registry):
-    env = api.Environment(cr, SUPERUSER_ID, {})
-    env['web_editor.assets'].reset_asset(
-        '/muk_web_theme/static/src/colors.scss', 
-        'web._assets_primary_variables'
-    )
+def _setup_module(env):
+    if env.ref('base.main_company', False): 
+        with file_open('web/static/img/favicon.ico', 'rb') as file:
+            env.ref('base.main_company').write({
+                'favicon': base64.b64encode(file.read())
+            })
+        with file_open('muk_web_theme/static/src/img/background.png', 'rb') as file:
+            env.ref('base.main_company').write({
+                'background_image': base64.b64encode(file.read())
+            })
+
+
+def _uninstall_cleanup(env):
+    env['res.config.settings']._reset_theme_color_assets()
